@@ -477,7 +477,7 @@ if st.session_state.calculation_type:
             comparison_data["Carro Alugado (€)"].append(alugado['líquido'])
             comparison_data["Carro Próprio (€)"].append(proprio['líquido'])
         
-        # Adicionar horas and média horária
+        # Adicionar horas e média horária
         comparison_data["Descrição"].extend(["Horas Trabalhadas", "Média Horária (€/hora)"])
         comparison_data["Carro Alugado (€)"].extend([weekly_hours, alugado['hora']])
         comparison_data["Carro Próprio (€)"].extend([weekly_hours, proprio['hora']])
@@ -534,4 +534,4 @@ with st.expander("💡 Dicas e Informações"):
     - Considere outros custos não incluídos aqui, como desvalorização do veículo e impostos
     """)
 
-st.markdow
+st.markdown(
