@@ -534,4 +534,5 @@ with st.expander("💡 Dicas e Informações"):
     - Considere outros custos não incluídos aqui, como desvalorização do veículo e impostos
     """)
 
-st.markdown(
+st.markdown("---")
+st.caption("Desenvolvido para ajudar motoristas TVDE a tomar decisões financeiras informadas.")
