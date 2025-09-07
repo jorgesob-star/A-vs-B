@@ -30,6 +30,8 @@ if 'own_maintenance' not in st.session_state:
     st.session_state.own_maintenance = 50.0
 if 'own_commission' not in st.session_state:
     st.session_state.own_commission = 12
+if 'extra_expenses' not in st.session_state:
+    st.session_state.extra_expenses = 0.0
 
 # ---
 # Seção de Entrada de Dados e Parâmetros
@@ -114,6 +116,16 @@ if st.session_state.show_params:
             value=st.session_state.own_commission, 
             step=1
         )
+        
+        # Despesas extras (aplicáveis a ambos os cenários)
+        st.subheader("Despesas Extras")
+        st.session_state.extra_expenses = st.number_input(
+            "Despesas Extras Semanais (€):", 
+            min_value=0.0, 
+            value=st.session_state.extra_expenses, 
+            step=5.0,
+            help="Despesas adicionais como estacionamento, portagens, lavagens, etc."
+        )
 
 # ---
 # Seção de Cálculos
@@ -123,12 +135,12 @@ if st.session_state.show_params:
 def calcular_ganhos(weekly_earnings, weekly_hours, fuel_cost):
     # Calcular para carro alugado
     rental_commission_value = weekly_earnings * (st.session_state.rental_commission / 100)
-    rental_net = weekly_earnings - rental_commission_value - st.session_state.rental_cost - fuel_cost
+    rental_net = weekly_earnings - rental_commission_value - st.session_state.rental_cost - fuel_cost - st.session_state.extra_expenses
     rental_hourly = rental_net / weekly_hours if weekly_hours > 0 else 0
     
     # Calcular para carro próprio
     own_commission_value = weekly_earnings * (st.session_state.own_commission / 100)
-    own_net = weekly_earnings - own_commission_value - st.session_state.own_insurance - st.session_state.own_maintenance - fuel_cost
+    own_net = weekly_earnings - own_commission_value - st.session_state.own_insurance - st.session_state.own_maintenance - fuel_cost - st.session_state.extra_expenses
     own_hourly = own_net / weekly_hours if weekly_hours > 0 else 0
     
     difference = rental_net - own_net
@@ -209,6 +221,7 @@ if st.button("Calcular", type="primary"):
             "Seguro",
             "Manutenção",
             "Custo com Combustível",
+            "Despesas Extras",
             "Total Líquido Semanal",
             "Horas Trabalhadas",
             "Média Horária"
@@ -220,6 +233,7 @@ if st.button("Calcular", type="primary"):
             0,
             0,
             -fuel_cost,
+            -st.session_state.extra_expenses,
             rental_net,
             weekly_hours,
             rental_hourly
@@ -231,6 +245,7 @@ if st.button("Calcular", type="primary"):
             -st.session_state.own_insurance,
             -st.session_state.own_maintenance,
             -fuel_cost,
+            -st.session_state.extra_expenses,
             own_net,
             weekly_hours,
             own_hourly
@@ -281,13 +296,13 @@ with st.expander("💡 Dicas e Informações"):
     - **Custo do Aluguel**: Valor semanal pelo aluguel do veículo (se aplicável).
     - **Seguro**: Custo semanal do seguro do veículo próprio.
     - **Manutenção**: Custo semanal estimado com manutenção do veículo próprio.
+    - **Despesas Extras**: Custos adicionais como estacionamento, portagens, lavagens, etc.
                 
     ⚠️ Lembre-se de considerar outros custos não incluídos aqui, como:
-    - Lavagens e limpeza
-    - Estacionamento e portagens
     - Desvalorização do veículo (no caso de carro próprio)
     - Impostos e taxas
-    - Tempo deslocamento até áreas de maior demanda
+    - Tempo de deslocamento até áreas de maior demanda
+    - Custos com alimentação durante o trabalho
     """)
 
 st.markdown("---")
