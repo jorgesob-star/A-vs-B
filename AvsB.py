@@ -74,9 +74,7 @@ def calcular_ganhos(weekly_earnings, weekly_hours, fuel_cost, weekly_km, calcula
         resultados["alugado"] = {
             "líquido": rental_net,
             "hora": rental_net / weekly_hours if weekly_hours else 0,
-            "profit_km": rental_net / weekly_km if weekly_km else 0,
-            "fuel_km": fuel_cost / weekly_km if weekly_km else 0,
-            "total_km": (st.session_state.rental_cost + fuel_cost) / weekly_km if weekly_km else 0
+            "custo_km": (st.session_state.rental_cost + fuel_cost) / weekly_km if weekly_km else 0
         }
 
     elif calculation_type == "proprio":
@@ -85,13 +83,10 @@ def calcular_ganhos(weekly_earnings, weekly_hours, fuel_cost, weekly_km, calcula
         resultados["proprio"] = {
             "líquido": own_net,
             "hora": own_net / weekly_hours if weekly_hours else 0,
-            "profit_km": own_net / weekly_km if weekly_km else 0,
-            "fuel_km": fuel_cost / weekly_km if weekly_km else 0,
-            "total_km": (st.session_state.own_insurance + st.session_state.own_maintenance + fuel_cost) / weekly_km if weekly_km else 0
+            "custo_km": (st.session_state.own_insurance + st.session_state.own_maintenance + fuel_cost) / weekly_km if weekly_km else 0
         }
 
     elif calculation_type == "comparar":
-        # calcular ambos apenas se for comparar
         rental_comm = weekly_earnings * (st.session_state.rental_commission / 100)
         rental_net = weekly_earnings - rental_comm - st.session_state.rental_cost - fuel_cost
         own_comm = weekly_earnings * (st.session_state.own_commission / 100)
@@ -99,20 +94,16 @@ def calcular_ganhos(weekly_earnings, weekly_hours, fuel_cost, weekly_km, calcula
         resultados["alugado"] = {
             "líquido": rental_net,
             "hora": rental_net / weekly_hours if weekly_hours else 0,
-            "profit_km": rental_net / weekly_km if weekly_km else 0,
-            "fuel_km": fuel_cost / weekly_km if weekly_km else 0,
-            "total_km": (st.session_state.rental_cost + fuel_cost) / weekly_km if weekly_km else 0
+            "custo_km": (st.session_state.rental_cost + fuel_cost) / weekly_km if weekly_km else 0
         }
         resultados["proprio"] = {
             "líquido": own_net,
             "hora": own_net / weekly_hours if weekly_hours else 0,
-            "profit_km": own_net / weekly_km if weekly_km else 0,
-            "fuel_km": fuel_cost / weekly_km if weekly_km else 0,
-            "total_km": (st.session_state.own_insurance + st.session_state.own_maintenance + fuel_cost) / weekly_km if weekly_km else 0
+            "custo_km": (st.session_state.own_insurance + st.session_state.own_maintenance + fuel_cost) / weekly_km if weekly_km else 0
         }
         resultados["diferença"] = resultados["alugado"]["líquido"] - resultados["proprio"]["líquido"]
         resultados["diferença_hora"] = resultados["alugado"]["hora"] - resultados["proprio"]["hora"]
-        resultados["diferença_km"] = resultados["alugado"]["profit_km"] - resultados["proprio"]["profit_km"]
+        resultados["diferença_km"] = resultados["alugado"]["custo_km"] - resultados["proprio"]["custo_km"]
 
     return resultados
 
@@ -125,13 +116,13 @@ if st.session_state.calculation_type:
         alugado = resultados["alugado"]
         st.metric("Carro Alugado - Líquido (€)", f"{alugado['líquido']:.2f}")
         st.metric("Média Horária (€)", f"{alugado['hora']:.2f}")
-        st.metric("Lucro por Km (€)", f"{alugado['profit_km']:.2f}")
+        st.metric("Custo por Km (€)", f"{alugado['custo_km']:.2f}")
 
     elif st.session_state.calculation_type == "proprio":
         proprio = resultados["proprio"]
         st.metric("Carro Próprio - Líquido (€)", f"{proprio['líquido']:.2f}")
         st.metric("Média Horária (€)", f"{proprio['hora']:.2f}")
-        st.metric("Lucro por Km (€)", f"{proprio['profit_km']:.2f}")
+        st.metric("Custo por Km (€)", f"{proprio['custo_km']:.2f}")
 
     elif st.session_state.calculation_type == "comparar":
         alugado = resultados["alugado"]
@@ -145,21 +136,4 @@ if st.session_state.calculation_type:
         col1, col2, col3 = st.columns(3)
         col1.metric("Alugado €/h", f"{alugado['hora']:.2f}")
         col2.metric("Próprio €/h", f"{proprio['hora']:.2f}")
-        col3.metric("Diferença €/h", f"{resultados['diferença_hora']:.2f}")
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Alugado €/km", f"{alugado['profit_km']:.2f}")
-        col2.metric("Próprio €/km", f"{proprio['profit_km']:.2f}")
-        col3.metric("Diferença €/km", f"{resultados['diferença_km']:.2f}")
-
-        st.subheader("Gráficos")
-        tab1, tab2, tab3 = st.tabs(["Lucro Semanal", "Média Horária", "Lucro por Km"])
-        with tab1:
-            st.bar_chart(pd.DataFrame({"Opção": ["Alugado", "Próprio"], "Lucro (€)": [alugado['líquido'], proprio['líquido']]}), x="Opção", y="Lucro (€)")
-        with tab2:
-            st.bar_chart(pd.DataFrame({"Opção": ["Alugado", "Próprio"], "Média Horária (€)": [alugado['hora'], proprio['hora']]}), x="Opção", y="Média Horária (€)")
-        with tab3:
-            st.bar_chart(pd.DataFrame({"Opção": ["Alugado", "Próprio"], "Lucro por Km (€)": [alugado['profit_km'], proprio['profit_km']]}), x="Opção", y="Lucro por Km (€)")
-
-    if st.session_state.include_extra_expenses:
-        st.info(f"💡 Despesas extras informativas: € {st.session_state.extra_expenses:.2f} por semana (não afeta os cálculos).")
+        col3
