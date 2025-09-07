@@ -22,13 +22,13 @@ if 'show_params' not in st.session_state:
 if 'rental_cost' not in st.session_state:
     st.session_state.rental_cost = 280.0
 if 'rental_commission' not in st.session_state:
-    st.session_state.rental_commission = 7
+    st.session_state.rental_commission = 7.0
 if 'own_insurance' not in st.session_state:
     st.session_state.own_insurance = 45.0
 if 'own_maintenance' not in st.session_state:
     st.session_state.own_maintenance = 50.0
 if 'own_commission' not in st.session_state:
-    st.session_state.own_commission = 12
+    st.session_state.own_commission = 12.0
 if 'extra_expenses' not in st.session_state:
     st.session_state.extra_expenses = 0.0
 if 'include_extra_expenses' not in st.session_state:
@@ -111,12 +111,13 @@ if st.session_state.show_params:
             step=10.0
         )
         
-        st.session_state.rental_commission = st.slider(
+        st.session_state.rental_commission = st.number_input(
             "Comissão com Carro Alugado (%):", 
-            min_value=0, 
-            max_value=30, 
+            min_value=0.0, 
+            max_value=30.0, 
             value=st.session_state.rental_commission, 
-            step=1
+            step=0.5,
+            help="Percentual que a plataforma retém pelos serviços com carro alugado"
         )
     
     with adv_col2:
@@ -137,12 +138,13 @@ if st.session_state.show_params:
             help="Custo semanal estimado com manutenção do veículo próprio"
         )
         
-        st.session_state.own_commission = st.slider(
+        st.session_state.own_commission = st.number_input(
             "Comissão com Carro Próprio (%):", 
-            min_value=0, 
-            max_value=30, 
+            min_value=0.0, 
+            max_value=30.0, 
             value=st.session_state.own_commission, 
-            step=1
+            step=0.5,
+            help="Percentual que a plataforma retém pelos serviços com carro próprio"
         )
 
 # ---
@@ -392,7 +394,7 @@ if st.session_state.calculation_type:
                 st.metric(
                     "Antes das Despesas Extras", 
                     f"€ {proprio['antes_extras']:.2f}",
-                    help="Valor sem considerar as despesas extras"
+                    help="Valor sem considerar das despesas extras"
                 )
         
         with col3:
@@ -529,10 +531,4 @@ with st.expander("💡 Dicas e Informações"):
     - **Despesas Extras**: Custos adicionais como estacionamento, portagens, lavagens, etc.
                 
     ⚠️ Notas importantes:
-    - As médias horárias são calculadas SEM incluir as despesas extras
-    - As despesas extras são aplicadas apenas no lucro final
-    - Considere outros custos não incluídos aqui, como desvalorização do veículo e impostos
-    """)
-
-st.markdown("---")
-st.caption("Desenvolvido para ajudar motoristas TVDE a tomar decisões financeiras informadas.")
+    - As médias horárias são calculadas SEM
