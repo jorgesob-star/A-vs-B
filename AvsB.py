@@ -29,10 +29,14 @@ with col2:
 st.header("💸 Despesas Extras")
 extra_col1, extra_col2 = st.columns(2)
 with extra_col1:
-    st.session_state.include_extra_expenses = st.checkbox("Incluir despesas extras (informativo)", value=st.session_state.include_extra_expenses)
+    st.session_state.include_extra_expenses = st.checkbox(
+        "Incluir despesas extras (informativo)", value=st.session_state.include_extra_expenses
+    )
 with extra_col2:
     if st.session_state.include_extra_expenses:
-        st.session_state.extra_expenses = st.number_input("Despesas Extras Semanais (€):", min_value=0.0, value=st.session_state.extra_expenses, step=5.0)
+        st.session_state.extra_expenses = st.number_input(
+            "Despesas Extras Semanais (€):", min_value=0.0, value=st.session_state.extra_expenses, step=5.0
+        )
 
 # --- Parâmetros avançados ---
 if st.button("⚙️ Parâmetros Avançados"):
@@ -145,4 +149,5 @@ if st.session_state.calculation_type:
         col2.metric("Próprio €/km", f"{proprio['custo_km']:.2f}")
         col3.metric("Diferença €/km", f"{resultados['diferença_km']:.2f}")
 
-    if st.session_state.include_extra_exp
+    if st.session_state.include_extra_expenses:
+        st.info(f"💡 Despesas extras informativas: € {st.session_state.extra_expenses:.2f} por semana (não afeta os cálculos).")
