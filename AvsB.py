@@ -95,7 +95,7 @@ with extra_col2:
 if st.button("⚙️ Parâmetros Avançados"):
     st.session_state.show_params = not st.session_state.show_params
 
-# Mostrar parâmetros apenas if show_params for True
+# Mostrar parâmetros apenas se show_params for True
 if st.session_state.show_params:
     st.header("⚙️ Parâmetros Avançados")
     
@@ -471,70 +471,4 @@ if st.session_state.calculation_type:
             comparison_data["Carro Alugado (€)"].append(-st.session_state.extra_expenses)
             comparison_data["Carro Próprio (€)"].append(-st.session_state.extra_expenses)
             
-            comparison_data["Descrição"].append("Total Líquido Final")
-            comparison_data["Carro Alugado (€)"].append(alugado['líquido'])
-            comparison_data["Carro Próprio (€)"].append(proprio['líquido'])
-        else:
-            comparison_data["Descrição"].append("Total Líquido Final")
-            comparison_data["Carro Alugado (€)"].append(alugado['líquido'])
-            comparison_data["Carro Próprio (€)"].append(proprio['líquido'])
-        
-        # Adicionar horas e média horária
-        comparison_data["Descrição"].extend(["Horas Trabalhadas", "Média Horária (€/hora)"])
-        comparison_data["Carro Alugado (€)"].extend([weekly_hours, alugado['hora']])
-        comparison_data["Carro Próprio (€)"].extend([weekly_hours, proprio['hora']])
-        
-        df = pd.DataFrame(comparison_data)
-        st.dataframe(df, use_container_width=True, hide_index=True)
-        
-        # Recomendação
-        st.subheader("Recomendação")
-        if resultados['diferença'] > 0.01:
-            st.success(f"✅ O carro alugado é mais vantajoso por € {resultados['diferença']:.2f} por semana.")
-        elif resultados['diferença'] < -0.01:
-            st.success(f"✅ O carro próprio é mais vantajoso por € {abs(resultados['diferença']):.2f} por semana.")
-        else:
-            st.info("ℹ️ Ambas as opções têm o mesmo resultado financeiro.")
-        
-        # Visualização gráfica
-        st.subheader("Comparação Visual")
-        
-        tab1, tab2 = st.tabs(["Lucro Semanal", "Média Horária"])
-        
-        with tab1:
-            chart_data_weekly = pd.DataFrame({
-                "Opção": ["Carro Alugado", "Carro Próprio"],
-                "Lucro Líquido Semanal (€)": [alugado['líquido'], proprio['líquido']]
-            })
-            st.bar_chart(chart_data_weekly, x="Opção", y="Lucro Líquido Semanal (€)")
-        
-        with tab2:
-            chart_data_hourly = pd.DataFrame({
-                "Opção": ["Carro Alugado", "Carro Próprio"],
-                "Média Horária (€)": [alugado['hora'], proprio['hora']]
-            })
-            st.bar_chart(chart_data_hourly, x="Opção", y="Média Horária (€)")
-
-# ---
-# Informações Adicionais e Rodapé
-# ---
-
-with st.expander("💡 Dicas e Informações"):
-    st.markdown("""
-    - **Ganhos Semanais**: Valor total que você recebe pelos serviços de TVDE em uma semana.
-    - **Horas Trabalhadas**: Total de horas trabalhadas na semana (incluindo tempo de espera).
-    - **Custo com Combustível**: Gasto semanal estimado com abastecimento.
-    - **Comissão**: Percentual que a plataforma retém pelos serviços.
-    - **Custo do Aluguel**: Valor semanal pelo aluguel do veículo (se aplicável).
-    - **Seguro**: Custo semanal do seguro do veículo próprio.
-    - **Manutenção**: Custo semanal estimado com manutenção do veículo próprio.
-    - **Despesas Extras**: Custos adicionais como estacionamento, portagens, lavagens, etc.
-                
-    ⚠️ Notas importantes:
-    - As médias horárias são calculadas SEM incluir as despesas extras
-    - As despesas extras são aplicadas apenas no lucro final
-    - Considere outros custos não incluídos aqui, como desvalorização do veículo e impostos
-    """)
-
-st.markdown("---")
-st.caption("Desenvolvido para ajudar motoristas TVDE a tomar decisões financeiras informadas.")
+            comparison_data["Descrição"].append("Total Líquido Final
