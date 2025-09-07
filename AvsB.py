@@ -17,7 +17,6 @@ st.markdown("Compare os lucros entre usar carro alugado e carro próprio para tr
 # ---
 
 # Inicializa todos os parâmetros no session_state com valores padrão
-# Isso garante que os valores estejam sempre disponíveis, mesmo quando ocultos
 if 'show_params' not in st.session_state:
     st.session_state.show_params = False
 if 'rental_cost' not in st.session_state:
@@ -32,6 +31,8 @@ if 'own_commission' not in st.session_state:
     st.session_state.own_commission = 12
 if 'extra_expenses' not in st.session_state:
     st.session_state.extra_expenses = 0.0
+if 'include_extra_expenses' not in st.session_state:
+    st.session_state.include_extra_expenses = False
 
 # ---
 # Seção de Entrada de Dados e Parâmetros
@@ -119,40 +120,61 @@ if st.session_state.show_params:
         
         # Despesas extras (aplicáveis a ambos os cenários)
         st.subheader("Despesas Extras")
-        st.session_state.extra_expenses = st.number_input(
-            "Despesas Extras Semanais (€):", 
-            min_value=0.0, 
-            value=st.session_state.extra_expenses, 
-            step=5.0,
-            help="Despesas adicionais como estacionamento, portagens, lavagens, etc."
+        st.session_state.include_extra_expenses = st.checkbox(
+            "Incluir despesas extras no cálculo",
+            value=st.session_state.include_extra_expenses,
+            help="Marque para incluir despesas extras no cálculo do lucro final"
         )
+        
+        if st.session_state.include_extra_expenses:
+            st.session_state.extra_expenses = st.number_input(
+                "Despesas Extras Semanais (€):", 
+                min_value=0.0, 
+                value=st.session_state.extra_expenses, 
+                step=5.0,
+                help="Despesas adicionais como estacionamento, portagens, lavagens, etc."
+            )
 
 # ---
 # Seção de Cálculos
 # ---
 
-# Função para realizar os cálculos (boa prática para organização)
+# Função para realizar os cálculos
 def calcular_ganhos(weekly_earnings, weekly_hours, fuel_cost):
-    # Calcular para carro alugado
+    # Calcular para carro alugado (sem despesas extras)
     rental_commission_value = weekly_earnings * (st.session_state.rental_commission / 100)
-    rental_net = weekly_earnings - rental_commission_value - st.session_state.rental_cost - fuel_cost - st.session_state.extra_expenses
-    rental_hourly = rental_net / weekly_hours if weekly_hours > 0 else 0
+    rental_net_before_extras = weekly_earnings - rental_commission_value - st.session_state.rental_cost - fuel_cost
+    rental_hourly = rental_net_before_extras / weekly_hours if weekly_hours > 0 else 0
     
-    # Calcular para carro próprio
+    # Aplicar despesas extras se selecionado
+    if st.session_state.include_extra_expenses:
+        rental_net_final = rental_net_before_extras - st.session_state.extra_expenses
+    else:
+        rental_net_final = rental_net_before_extras
+    
+    # Calcular para carro próprio (sem despesas extras)
     own_commission_value = weekly_earnings * (st.session_state.own_commission / 100)
-    own_net = weekly_earnings - own_commission_value - st.session_state.own_insurance - st.session_state.own_maintenance - fuel_cost - st.session_state.extra_expenses
-    own_hourly = own_net / weekly_hours if weekly_hours > 0 else 0
+    own_net_before_extras = weekly_earnings - own_commission_value - st.session_state.own_insurance - st.session_state.own_maintenance - fuel_cost
+    own_hourly = own_net_before_extras / weekly_hours if weekly_hours > 0 else 0
     
-    difference = rental_net - own_net
+    # Aplicar despesas extras se selecionado
+    if st.session_state.include_extra_expenses:
+        own_net_final = own_net_before_extras - st.session_state.extra_expenses
+    else:
+        own_net_final = own_net_before_extras
+    
+    difference = rental_net_final - own_net_final
     difference_hourly = rental_hourly - own_hourly
     
-    return (rental_net, own_net, difference, rental_commission_value, 
-            own_commission_value, rental_hourly, own_hourly, difference_hourly)
+    return (rental_net_final, own_net_final, difference, rental_commission_value, 
+            own_commission_value, rental_hourly, own_hourly, difference_hourly,
+            rental_net_before_extras, own_net_before_extras)
 
 # Botão de cálculo
 if st.button("Calcular", type="primary"):
     (rental_net, own_net, difference, rental_commission_value, 
-     own_commission_value, rental_hourly, own_hourly, difference_hourly) = calcular_ganhos(weekly_earnings, weekly_hours, fuel_cost)
+     own_commission_value, rental_hourly, own_hourly, difference_hourly,
+     rental_before_extras, own_before_extras) = calcular_ganhos(weekly_earnings, weekly_hours, fuel_cost)
     
     # ---
     # Seção de Resultados
@@ -185,8 +207,8 @@ if st.button("Calcular", type="primary"):
             delta_color="inverse" if difference < 0 else "normal"
         )
     
-    # Métricas horárias
-    st.subheader("Média Horária")
+    # Métricas horárias (calculadas SEM despesas extras)
+    st.subheader("Média Horária (sem despesas extras)")
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -213,6 +235,7 @@ if st.button("Calcular", type="primary"):
     # Detalhamento dos cálculos
     st.subheader("Detalhamento dos Cálculos")
     
+    # Preparar dados para a tabela
     comparison_data = {
         "Descrição": [
             "Ganhos Semanais",
@@ -221,36 +244,46 @@ if st.button("Calcular", type="primary"):
             "Seguro",
             "Manutenção",
             "Custo com Combustível",
-            "Despesas Extras",
-            "Total Líquido Semanal",
-            "Horas Trabalhadas",
-            "Média Horária"
+            "Subtotal (antes de despesas extras)",
         ],
         "Carro Alugado (€)": [
             weekly_earnings,
             -rental_commission_value,
             -st.session_state.rental_cost,
-            0,
-            0,
+            "N/A",
+            "N/A",
             -fuel_cost,
-            -st.session_state.extra_expenses,
-            rental_net,
-            weekly_hours,
-            rental_hourly
+            rental_before_extras,
         ],
         "Carro Próprio (€)": [
             weekly_earnings,
             -own_commission_value,
-            0,
+            "N/A",
             -st.session_state.own_insurance,
             -st.session_state.own_maintenance,
             -fuel_cost,
-            -st.session_state.extra_expenses,
-            own_net,
-            weekly_hours,
-            own_hourly
+            own_before_extras,
         ]
     }
+    
+    # Adicionar linha de despesas extras se aplicável
+    if st.session_state.include_extra_expenses:
+        comparison_data["Descrição"].append("Despesas Extras")
+        comparison_data["Carro Alugado (€)"].append(-st.session_state.extra_expenses)
+        comparison_data["Carro Próprio (€)"].append(-st.session_state.extra_expenses)
+        
+        comparison_data["Descrição"].append("Total Líquido Final")
+        comparison_data["Carro Alugado (€)"].append(rental_net)
+        comparison_data["Carro Próprio (€)"].append(own_net)
+    else:
+        comparison_data["Descrição"].append("Total Líquido Final")
+        comparison_data["Carro Alugado (€)"].append(rental_net)
+        comparison_data["Carro Próprio (€)"].append(own_net)
+    
+    # Adicionar horas e média horária
+    comparison_data["Descrição"].extend(["Horas Trabalhadas", "Média Horária (€/hora)"])
+    comparison_data["Carro Alugado (€)"].extend([weekly_hours, rental_hourly])
+    comparison_data["Carro Próprio (€)"].extend([weekly_hours, own_hourly])
     
     df = pd.DataFrame(comparison_data)
     st.dataframe(df, use_container_width=True, hide_index=True)
@@ -258,16 +291,16 @@ if st.button("Calcular", type="primary"):
     # Recomendação
     st.subheader("Recomendação")
     if difference > 0.01:
-        st.success(f"✅ O carro alugado é mais vantajoso por € {difference:.2f} por semana (€ {difference_hourly:.2f}/hora).")
+        st.success(f"✅ O carro alugado é mais vantajoso por € {difference:.2f} por semana.")
     elif difference < -0.01:
-        st.success(f"✅ O carro próprio é mais vantajoso por € {abs(difference):.2f} por semana (€ {abs(difference_hourly):.2f}/hora).")
+        st.success(f"✅ O carro próprio é mais vantajoso por € {abs(difference):.2f} por semana.")
     else:
         st.info("ℹ️ Ambas as opções têm o mesmo resultado financeiro.")
     
     # Visualização gráfica
     st.subheader("Comparação Visual")
     
-    tab1, tab2 = st.tabs(["Lucro Semanal", "Média Horária"])
+    tab1, tab2, tab3 = st.tabs(["Lucro Semanal", "Média Horária", "Comparativo Completo"])
     
     with tab1:
         chart_data_weekly = pd.DataFrame({
@@ -282,6 +315,43 @@ if st.button("Calcular", type="primary"):
             "Média Horária (€)": [rental_hourly, own_hourly]
         })
         st.bar_chart(chart_data_hourly, x="Opção", y="Média Horária (€)")
+        
+    with tab3:
+        # Gráfico comparativo completo
+        comparativo_data = pd.DataFrame({
+            "Categoria": [
+                "Ganhos Semanais", 
+                "Comissão", 
+                "Custo Aluguel/Seguro", 
+                "Manutenção", 
+                "Combustível"
+            ],
+            "Carro Alugado (€)": [
+                weekly_earnings,
+                -rental_commission_value,
+                -st.session_state.rental_cost,
+                0,
+                -fuel_cost
+            ],
+            "Carro Próprio (€)": [
+                weekly_earnings,
+                -own_commission_value,
+                -st.session_state.own_insurance,
+                -st.session_state.own_maintenance,
+                -fuel_cost
+            ]
+        })
+        
+        # Adicionar despesas extras se aplicável
+        if st.session_state.include_extra_expenses:
+            extras_row = pd.DataFrame({
+                "Categoria": ["Despesas Extras"],
+                "Carro Alugado (€)": [-st.session_state.extra_expenses],
+                "Carro Próprio (€)": [-st.session_state.extra_expenses]
+            })
+            comparativo_data = pd.concat([comparativo_data, extras_row], ignore_index=True)
+        
+        st.bar_chart(comparativo_data.set_index("Categoria"))
 
 # ---
 # Informações Adicionais e Rodapé
@@ -298,11 +368,10 @@ with st.expander("💡 Dicas e Informações"):
     - **Manutenção**: Custo semanal estimado com manutenção do veículo próprio.
     - **Despesas Extras**: Custos adicionais como estacionamento, portagens, lavagens, etc.
                 
-    ⚠️ Lembre-se de considerar outros custos não incluídos aqui, como:
-    - Desvalorização do veículo (no caso de carro próprio)
-    - Impostos e taxas
-    - Tempo de deslocamento até áreas de maior demanda
-    - Custos com alimentação durante o trabalho
+    ⚠️ Notas importantes:
+    - As médias horárias são calculadas SEM incluir as despesas extras
+    - As despesas extras são aplicadas apenas no lucro final
+    - Considere outros custos não incluídos aqui, como desvalorização do veículo e impostos
     """)
 
 st.markdown("---")
