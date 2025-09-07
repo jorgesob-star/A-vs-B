@@ -2,113 +2,235 @@ import streamlit as st
 import pandas as pd
 
 # Configuração da página
-st.set_page_config(page_title="Comparador de Descontos", layout="centered")
-st.title("💸 Comparador de Descontos")
+st.set_page_config(
+    page_title="Comparador de Ganhos TVDE",
+    page_icon="🚗",
+    layout="wide"
+)
 
-# --- Definição dos valores padrão iniciais ---
-DEFAULTS = {
-    'aluguer': 280.0,
-    'perc_aluguer': 7.0,
-    'seguro': 45.0,
-    'perc_seguro': 12.0,
-    'manutencao': 50.0
-}
+# Título da aplicação
+st.title("🚗 Comparador de Ganhos TVDE")
+st.markdown("Compare os lucros entre usar carro alugado e carro próprio para trabalhar como motorista TVDE.")
 
-# Inicializa o estado da sessão
-if 'show_inputs' not in st.session_state:
-    st.session_state.show_inputs = False
+# ---
+# Lógica de Inicialização dos Parâmetros
+# ---
 
-for key, value in DEFAULTS.items():
-    if key not in st.session_state:
-        st.session_state[key] = value
+# Inicializa todos os parâmetros no session_state com valores padrão
+# Isso garante que os valores estejam sempre disponíveis, mesmo quando ocultos
+if 'show_params' not in st.session_state:
+    st.session_state.show_params = False
+if 'rental_cost' not in st.session_state:
+    st.session_state.rental_cost = 280.0
+if 'rental_commission' not in st.session_state:
+    st.session_state.rental_commission = 7
+if 'own_insurance' not in st.session_state:
+    st.session_state.own_insurance = 45.0
+if 'own_maintenance' not in st.session_state:
+    st.session_state.own_maintenance = 50.0
+if 'own_commission' not in st.session_state:
+    st.session_state.own_commission = 12
 
-# --- Entradas do Usuário ---
-st.header("Entradas do Usuário")
+# ---
+# Seção de Entrada de Dados e Parâmetros
+# ---
 
-apuro = st.number_input("💰 Apuro total (€)", min_value=0.0, value=700.0, step=10.0, help="O valor total bruto que você recebeu.")
-desc_combustivel = st.number_input("⛽ Desconto de Combustível (€)", min_value=0.0, value=200.0, step=1.0, help="O valor que você gasta com combustível e que é deduzido do apuro.")
+col1, col2 = st.columns(2)
 
-st.markdown("---")
+with col1:
+    st.header("📊 Dados de Entrada")
+    
+    weekly_earnings = st.number_input(
+        "Ganhos Semanais (€):", 
+        min_value=0.0, 
+        value=800.0, 
+        step=50.0,
+        help="Valor total ganho por semana antes de despesas"
+    )
+    
+    fuel_cost = st.number_input(
+        "Custo Semanal com Combustível (€):", 
+        min_value=0.0, 
+        value=200.0, 
+        step=10.0,
+        help="Custo semanal estimado com combustível"
+    )
 
-# --- Opções da Empresa ---
-st.header("Opções da Empresa")
+# Botão para mostrar/ocultar parâmetros
+if st.button("⚙️ Parâmetros"):
+    st.session_state.show_params = not st.session_state.show_params
 
-if st.button("Modificar Opções Padrão"):
-    st.session_state.show_inputs = not st.session_state.show_inputs
-
-if st.session_state.show_inputs:
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("Alugado")
-        st.number_input("🏠 Aluguer (€)", min_value=0.0, value=st.session_state.aluguer, step=1.0, key='aluguer')
-        st.number_input("👔 Percentual (%)", min_value=0.0, value=st.session_state.perc_aluguer, step=0.5, key='perc_aluguer')
+# Mostrar parâmetros apenas se show_params for True
+if st.session_state.show_params:
     with col2:
-        st.subheader("Próprio")
-        st.number_input("🛡️ Seguro (€)", min_value=0.0, value=st.session_state.seguro, step=1.0, key='seguro')
-        st.number_input("👔 Percentual (%)", min_value=0.0, value=st.session_state.perc_seguro, step=0.5, key='perc_seguro')
-        st.number_input("🛠️ Manutenção (€)", min_value=0.0, value=st.session_state.manutencao, step=1.0, key='manutencao')
-else:
-    st.info("Valores padrão das opções estão sendo usados. Clique no botão acima para modificá-los.")
+        st.header("⚙️ Parâmetros")
+        
+        # Parâmetros para carro alugado
+        st.subheader("Carro Alugado")
+        st.session_state.rental_cost = st.number_input(
+            "Custo do Aluguel (€/semana):", 
+            min_value=0.0, 
+            value=st.session_state.rental_cost, 
+            step=10.0
+        )
+        
+        st.session_state.rental_commission = st.slider(
+            "Comissão com Carro Alugado (%):", 
+            min_value=0, 
+            max_value=30, 
+            value=st.session_state.rental_commission, 
+            step=1
+        )
+        
+        # Parâmetros para carro próprio
+        st.subheader("Carro Próprio")
+        st.session_state.own_insurance = st.number_input(
+            "Seguro (€/semana):", 
+            min_value=0.0, 
+            value=st.session_state.own_insurance, 
+            step=5.0
+        )
+        
+        st.session_state.own_maintenance = st.number_input(
+            "Manutenção (€/semana):", 
+            min_value=0.0, 
+            value=st.session_state.own_maintenance, 
+            step=5.0,
+            help="Custo semanal estimado com manutenção do veículo próprio"
+        )
+        
+        st.session_state.own_commission = st.slider(
+            "Comissão com Carro Próprio (%):", 
+            min_value=0, 
+            max_value=30, 
+            value=st.session_state.own_commission, 
+            step=1
+        )
+
+# ---
+# Seção de Cálculos
+# ---
+
+# Função para realizar os cálculos (boa prática para organização)
+def calcular_ganhos(weekly_earnings, fuel_cost):
+    # Calcular para carro alugado
+    rental_commission_value = weekly_earnings * (st.session_state.rental_commission / 100)
+    rental_net = weekly_earnings - rental_commission_value - st.session_state.rental_cost - fuel_cost
+    
+    # Calcular para carro próprio
+    own_commission_value = weekly_earnings * (st.session_state.own_commission / 100)
+    own_net = weekly_earnings - own_commission_value - st.session_state.own_insurance - st.session_state.own_maintenance - fuel_cost
+    
+    difference = rental_net - own_net
+    
+    return rental_net, own_net, difference, rental_commission_value, own_commission_value
+
+# Botão de cálculo
+if st.button("Calcular", type="primary"):
+    rental_net, own_net, difference, rental_commission_value, own_commission_value = calcular_ganhos(weekly_earnings, fuel_cost)
+    
+    # ---
+    # Seção de Resultados
+    # ---
+
+    st.header("📈 Resultados")
+    
+    # Métricas
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            "Carro Alugado (Líquido Semanal)", 
+            f"€ {rental_net:.2f}",
+            delta_color="inverse" if rental_net < 0 else "normal"
+        )
+    
+    with col2:
+        st.metric(
+            "Carro Próprio (Líquido Semanal)", 
+            f"€ {own_net:.2f}",
+            delta_color="inverse" if own_net < 0 else "normal"
+        )
+    
+    with col3:
+        st.metric(
+            "Diferença Semanal", 
+            f"€ {difference:.2f}",
+            delta_color="inverse" if difference < 0 else "normal"
+        )
+    
+    # Detalhamento dos cálculos
+    st.subheader("Detalhamento dos Cálculos")
+    
+    comparison_data = {
+        "Descrição": [
+            "Ganhos Semanais",
+            f"Comissão ({st.session_state.rental_commission}%)",
+            "Custo do Aluguel",
+            "Manutenção",
+            "Custo com Combustível",
+            "Total Líquido"
+        ],
+        "Carro Alugado (€)": [
+            weekly_earnings,
+            -rental_commission_value,
+            -st.session_state.rental_cost,
+            0,
+            -fuel_cost,
+            rental_net
+        ],
+        "Carro Próprio (€)": [
+            weekly_earnings,
+            -own_commission_value,
+            -st.session_state.own_insurance,
+            -st.session_state.own_maintenance,
+            -fuel_cost,
+            own_net
+        ]
+    }
+    
+    df = pd.DataFrame(comparison_data)
+    st.dataframe(df, use_container_width=True, hide_index=True)
+    
+    # Recomendação
+    st.subheader("Recomendação")
+    if difference > 0.01:
+        st.success(f"✅ O carro alugado é mais vantajoso por € {difference:.2f} por semana.")
+    elif difference < -0.01:
+        st.success(f"✅ O carro próprio é mais vantajoso por € {abs(difference):.2f} por semana.")
+    else:
+        st.info("ℹ️ Ambas as opções têm o mesmo resultado financeiro.")
+    
+    # Visualização gráfica
+    st.subheader("Comparação Visual")
+    
+    chart_data = pd.DataFrame({
+        "Opção": ["Carro Alugado", "Carro Próprio"],
+        "Lucro Líquido (€)": [rental_net, own_net]
+    })
+    
+    st.bar_chart(chart_data, x="Opção", y="Lucro Líquido (€)")
+
+# ---
+# Informações Adicionais e Rodapé
+# ---
+
+with st.expander("💡 Dicas e Informações"):
+    st.markdown("""
+    - **Ganhos Semanais**: Valor total que você recebe pelos serviços de TVDE em uma semana.
+    - **Custo com Combustível**: Gasto semanal estimado com abastecimento.
+    - **Comissão**: Percentual que a plataforma retém pelos serviços.
+    - **Custo do Aluguel**: Valor semanal pelo aluguel do veículo (se aplicável).
+    - **Seguro**: Custo semanal do seguro do veículo próprio.
+    - **Manutenção**: Custo semanal estimado com manutenção do veículo próprio.
+                
+    ⚠️ Lembre-se de considerar outros custos não incluídos aqui, como:
+    - Lavagens e limpeza
+    - Estacionamento e portagens
+    - Desvalorização do veículo (no caso de carro próprio)
+    - Impostos e taxas
+    """)
 
 st.markdown("---")
+st.caption("Desenvolvido para ajudar motoristas TVDE a tomar decisões financeiras informadas.")
 
-# --- Botão de cálculo ---
-if st.button("Calcular 🔹", type="primary"):
-    apuro_liquido = apuro - desc_combustivel
-    
-    aluguer_atual = st.session_state.aluguer
-    perc_aluguer_atual = st.session_state.perc_aluguer
-    seguro_atual = st.session_state.seguro
-    perc_seguro_atual = st.session_state.perc_seguro
-    manutencao_atual = st.session_state.manutencao
-
-    sobra_opcao1 = apuro_liquido - (apuro * perc_aluguer_atual / 100) - aluguer_atual
-    sobra_opcao2 = apuro_liquido - (apuro * perc_seguro_atual / 100) - seguro_atual - manutencao_atual
-    
-    st.subheader("📊 Resultados:")
-    st.metric("Apuro Líquido", f"{apuro_liquido:,.2f} €", help="Apuro total menos o desconto de combustível.")
-    st.markdown("---")
-
-    # --- Abas de Resultados ---
-    tab1, tab2 = st.tabs(["📈 Resumo", "🧮 Detalhes dos Cálculos"])
-
-    with tab1:
-        col3, col4 = st.columns(2)
-        with col3:
-            st.metric(f"Sobra na Opção 1", f"{sobra_opcao1:,.2f} €")
-        with col4:
-            st.metric(f"Sobra na Opção 2", f"{sobra_opcao2:,.2f} €")
-
-        # Gráfico comparativo
-        df = pd.DataFrame({
-            "Opção": ["Opção 1 - Aluguer", "Opção 2 - Próprio"],
-            "Sobra (€)": [sobra_opcao1, sobra_opcao2]
-        })
-        st.bar_chart(df.set_index("Opção"))
-
-        # Melhor escolha
-        if sobra_opcao1 > sobra_opcao2:
-            st.success(f"🎉 A **Opção 1** é a melhor escolha, com uma diferença de **{(sobra_opcao1 - sobra_opcao2):,.2f} €**.")
-        elif sobra_opcao2 > sobra_opcao1:
-            st.success(f"🎉 A **Opção 2** é a melhor escolha, com uma diferença de **{(sobra_opcao2 - sobra_opcao1):,.2f} €**.")
-        else:
-            st.info("As duas opções resultam no mesmo valor.")
-
-    with tab2:
-        st.markdown(f"""
-        **Cálculo da Opção 1:**
-        * Apuro Líquido: {apuro_liquido:,.2f} €
-        * Dedução da Empresa: {apuro:,.2f} € * ({perc_aluguer_atual} / 100) = **{(apuro * perc_aluguer_atual / 100):,.2f} €**
-        * Dedução de Aluguer: **{aluguer_atual:,.2f} €**
-        * **Valor Final:** {apuro_liquido:,.2f} - {(apuro * perc_aluguer_atual / 100):,.2f} - {aluguer_atual:,.2f} = **{sobra_opcao1:,.2f} €**
-        """)
-
-        st.markdown(f"""
-        **Cálculo da Opção 2:**
-        * Apuro Líquido: {apuro_liquido:,.2f} €
-        * Dedução da Empresa: {apuro:,.2f} € * ({perc_seguro_atual} / 100) = **{(apuro * perc_seguro_atual / 100):,.2f} €**
-        * Dedução de Seguro: **{seguro_atual:,.2f} €**
-        * Dedução de Manutenção: **{manutencao_atual:,.2f} €**
-        * **Valor Final:** {apuro_liquido:,.2f} - {(apuro * perc_seguro_atual / 100):,.2f} - {seguro_atual:,.2f} - {manutencao_atual:,.2f} = **{sobra_opcao2:,.2f} €**
-        """)
