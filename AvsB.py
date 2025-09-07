@@ -95,7 +95,7 @@ with extra_col2:
 if st.button("⚙️ Parâmetros Avançados"):
     st.session_state.show_params = not st.session_state.show_params
 
-# Mostrar parâmetros apenas se show_params for True
+# Mostrar parâmetros apenas if show_params for True
 if st.session_state.show_params:
     st.header("⚙️ Parâmetros Avançados")
     
@@ -394,7 +394,7 @@ if st.session_state.calculation_type:
                 st.metric(
                     "Antes das Despesas Extras", 
                     f"€ {proprio['antes_extras']:.2f}",
-                    help="Valor sem considerar das despesas extras"
+                    help="Valor sem considerar as despesas extras"
                 )
         
         with col3:
@@ -531,4 +531,4 @@ with st.expander("💡 Dicas e Informações"):
     - **Despesas Extras**: Custos adicionais como estacionamento, portagens, lavagens, etc.
                 
     ⚠️ Notas importantes:
-    - As médias horárias são calculadas SEM
+    - As médias horárias são calculadas SEM 
