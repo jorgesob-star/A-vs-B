@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 
 # Configuração da página
 st.set_page_config(
@@ -18,15 +17,16 @@ st.markdown("""
     .stNumberInput input {border-radius: 5px;}
     .stMetric {border: 1px solid #ddd; border-radius: 8px; padding: 10px;}
     .stExpander {border: 1px solid #ddd; border-radius: 8px;}
+    .stDataFrame {font-size: 14px;}
     </style>
 """, unsafe_allow_html=True)
 
 # Título da aplicação
 st.title("🚗 Comparador de Ganhos TVDE")
-st.markdown("Compare os lucros entre usar carro alugado e carro próprio para trabalhar como motorista TVDE.", unsafe_allow_html=True)
+st.markdown("Compare os lucros entre carro alugado e próprio para trabalhar como motorista TVDE.", unsafe_allow_html=True)
 
 # ---
-# Lógica de Inicialização dos Parâmetros
+# Inicialização dos Parâmetros
 # ---
 if 'show_params' not in st.session_state:
     st.session_state.show_params = False
@@ -156,11 +156,9 @@ def calcular_ganhos(weekly_earnings, fuel_cost, other_costs):
     Returns:
         tuple: Lucro líquido (alugado, próprio), diferença, valores das comissões.
     """
-    # Carro alugado
     rental_commission_value = weekly_earnings * (st.session_state.rental_commission / 100)
     rental_net = weekly_earnings - rental_commission_value - st.session_state.rental_cost - fuel_cost - other_costs
     
-    # Carro próprio
     own_commission_value = weekly_earnings * (st.session_state.own_commission / 100)
     own_net = weekly_earnings - own_commission_value - st.session_state.own_insurance - st.session_state.own_maintenance - fuel_cost - other_costs
     
@@ -274,18 +272,14 @@ if st.button("Calcular", type="primary"):
         "Opção": ["Carro Alugado", "Carro Próprio"],
         "Lucro Líquido (€)": [rental_net, own_net]
     })
-    
-    fig = px.bar(
+    st.bar_chart(
         chart_data,
         x="Opção",
         y="Lucro Líquido (€)",
-        text_auto=".2f",
-        color="Opção",
-        color_discrete_map={"Carro Alugado": "#4CAF50", "Carro Próprio": "#2196F3"},
-        title="Lucro Líquido Semanal"
+        color=["#4CAF50", "#2196F3"],
+        height=400
     )
-    fig.update_layout(showlegend=False, title_x=0.5)
-    st.plotly_chart(fig, use_container_width=True)
+    st.caption("Comparação do lucro líquido semanal entre carro alugado e carro próprio.")
 
 # ---
 # Informações Adicionais e Rodapé
@@ -300,7 +294,7 @@ with st.expander("💡 Dicas e Informações"):
     - **Seguro**: Custo semanal do seguro do veículo próprio.
     - **Manutenção**: Custo semanal estimado com manutenção do veículo próprio.
                 
-    ⚠️ Considere outros fatores não incluídos aqui, como:
+    ⚠️ Considere outros fatores não incluídos, como:
     - Desvalorização do veículo (no caso de carro próprio)
     - Impostos e taxas
     - Custos imprevistos (ex.: multas, reparos)
