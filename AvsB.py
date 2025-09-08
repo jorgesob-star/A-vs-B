@@ -23,7 +23,7 @@ with col1:
     fuel_cost = st.number_input("Custo Semanal com Combustível (€):", min_value=0.0, value=170.0, step=10.0)
 with col2:
     st.header("📏 Quilometragem")
-    weekly_km = st.number_input("Quilómetros percorridos por semana:", min_value=0.0, value=1200.0, step=50.0)
+    weekly_km = st.number_input("Quilómetros percorridos por semana:", min_value=0.0, value=1500.0, step=50.0)
 
 # --- Despesas extras ---
 st.header("💸 Despesas Extras")
