@@ -16,28 +16,16 @@ default_values = {
 
 # Inicializar session_state apenas uma vez
 for key, val in default_values.items():
-    if key not in st.session_state:
-        st.session_state[key] = val
+    st.session_state.setdefault(key, val)
 
-# Inputs vinculados ao session_state (SEM value após a inicialização)
-kraken = st.number_input("Kraken", key="Kraken")
-gate = st.number_input("Gate", key="Gate")
-coinbase = st.number_input("Coinbase", key="Coinbase")
-n26 = st.number_input("N26", key="N26")
-revolut = st.number_input("Revolut", key="Revolut")
-caixa = st.number_input("Caixa", key="Caixa")
+# Criar inputs vinculados ao session_state (SEM passar value)
+for key in default_values.keys():
+    st.number_input(label=key, key=key)
 
-# Criar DataFrame atualizado
+# Criar DataFrame a partir do session_state
 df = pd.DataFrame({
     "Plataforma": list(default_values.keys()),
-    "Valor": [
-        st.session_state["Kraken"],
-        st.session_state["Gate"],
-        st.session_state["Coinbase"],
-        st.session_state["N26"],
-        st.session_state["Revolut"],
-        st.session_state["Caixa"]
-    ]
+    "Valor": [st.session_state[key] for key in default_values.keys()]
 })
 
 # Mostrar soma total
@@ -50,7 +38,7 @@ csv = df.to_csv(index=False, encoding="utf-8")
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 file_name = f"valores_{timestamp}.csv"
 
-# Botão para salvar CSV
+# Botão de download manual
 st.download_button(
     label="💾 Salvar Valores",
     data=csv,
