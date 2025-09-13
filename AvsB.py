@@ -6,12 +6,12 @@ st.title("Gestor de Valores")
 
 # Valores padrão
 default_values = {
-    "kraken": 678,
-    "gate": 1956,
-    "coinbase": 2463,
-    "n26": 195,
-    "revolut": 2180,
-    "caixa": 927
+    "Kraken": 678,
+    "Gate": 1956,
+    "Coinbase": 2463,
+    "N26": 195,
+    "Revolut": 2180,
+    "Caixa": 927
 }
 
 # Inicializar session_state apenas uma vez
@@ -19,25 +19,14 @@ for key, val in default_values.items():
     if key not in st.session_state:
         st.session_state[key] = val
 
-# Inputs vinculados ao session_state (NUNCA passar value após a inicialização)
-st.number_input("Kraken", key="kraken")
-st.number_input("Gate", key="gate")
-st.number_input("Coinbase", key="coinbase")
-st.number_input("N26", key="n26")
-st.number_input("Revolut", key="revolut")
-st.number_input("Caixa", key="caixa")
+# Inputs vinculados ao session_state (SEM passar value)
+for key in default_values.keys():
+    st.number_input(key, key=key)
 
-# Criar DataFrame a partir do session_state
+# Criar DataFrame a partir dos valores atuais do session_state
 df = pd.DataFrame({
     "Plataforma": list(default_values.keys()),
-    "Valor": [
-        st.session_state["kraken"],
-        st.session_state["gate"],
-        st.session_state["coinbase"],
-        st.session_state["n26"],
-        st.session_state["revolut"],
-        st.session_state["caixa"]
-    ]
+    "Valor": [st.session_state[k] for k in default_values.keys()]
 })
 
 # Mostrar soma total
