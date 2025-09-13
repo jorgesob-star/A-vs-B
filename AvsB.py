@@ -15,19 +15,27 @@ default_values = {
 }
 
 # Inicializar session_state apenas uma vez
-if "initialized" not in st.session_state:
-    for key, val in default_values.items():
-        st.session_state[key] = val
-    st.session_state["initialized"] = True
+if "values" not in st.session_state:
+    st.session_state["values"] = default_values.copy()
 
-# Inputs vinculados ao session_state
+# Função para atualizar valores
+def update_value(key, val):
+    st.session_state["values"][key] = val
+
+# Inputs vinculados diretamente ao session_state
 for key in default_values.keys():
-    st.session_state[key] = st.number_input(label=key, value=st.session_state[key], key=key+"_input")
+    st.number_input(
+        label=key,
+        value=st.session_state["values"][key],
+        key=key,
+        on_change=update_value,
+        args=(key, st.session_state[key])
+    )
 
 # Criar DataFrame atualizado
 df = pd.DataFrame({
     "Plataforma": list(default_values.keys()),
-    "Valor": [st.session_state[key] for key in default_values.keys()]
+    "Valor": [st.session_state["values"][key] for key in default_values.keys()]
 })
 
 # Mostrar soma total
