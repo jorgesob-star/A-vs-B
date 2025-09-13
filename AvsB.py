@@ -18,18 +18,13 @@ default_values = {
 if "values" not in st.session_state:
     st.session_state["values"] = default_values.copy()
 
-# Função para atualizar valores
-def update_value(key, val):
-    st.session_state["values"][key] = val
-
-# Inputs vinculados diretamente ao session_state
+# Criar inputs diretamente vinculados ao session_state["values"]
 for key in default_values.keys():
-    st.number_input(
+    # Valor inicial vem do session_state["values"]
+    st.session_state["values"][key] = st.number_input(
         label=key,
         value=st.session_state["values"][key],
-        key=key,
-        on_change=update_value,
-        args=(key, st.session_state[key])
+        key=key
     )
 
 # Criar DataFrame atualizado
