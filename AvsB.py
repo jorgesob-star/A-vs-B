@@ -12,23 +12,21 @@ revolut = st.number_input("Revolut", value=2180)
 caixa = st.number_input("Caixa", value=927)
 
 # Criar DataFrame atualizado
-valores = {
-    "Plataforma": ["Kraken", "Gate", "Coinbase", "N26", "Revolut", "Caixa"],
-    "Valor": [kraken, gate, coinbase, n26, revolut, caixa],
-}
-df = pd.DataFrame(valores)
+def gerar_dataframe():
+    return pd.DataFrame({
+        "Plataforma": ["Kraken", "Gate", "Coinbase", "N26", "Revolut", "Caixa"],
+        "Valor": [kraken, gate, coinbase, n26, revolut, caixa],
+    })
 
 # Mostrar soma total
+df = gerar_dataframe()
 total = df["Valor"].sum()
 st.success(f"💰 Total = {total}")
 
-# Gerar CSV como string UTF-8
-csv = df.to_csv(index=False, encoding="utf-8")
-
-# Botão de download confiável
+# Botão para salvar CSV sempre com valores atuais
 st.download_button(
     label="💾 Salvar Valores",
-    data=csv,
+    data=lambda: gerar_dataframe().to_csv(index=False, encoding="utf-8"),
     file_name="valores.csv",
     mime="text/csv",
 )
