@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from io import BytesIO
 
 st.title("Gestor de Valores")
 
@@ -23,15 +22,11 @@ df = pd.DataFrame(valores)
 total = df["Valor"].sum()
 st.success(f"💰 Total = {total}")
 
-# Botão para salvar Excel manualmente
-output = BytesIO()
-with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-    df.to_excel(writer, index=False, sheet_name="Valores")
-output.seek(0)
-
+# Botão para salvar CSV
+csv = df.to_csv(index=False).encode("utf-8")
 st.download_button(
     "💾 Salvar Valores",
-    data=output,
-    file_name="valores.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    data=csv,
+    file_name="valores.csv",
+    mime="text/csv",
 )
