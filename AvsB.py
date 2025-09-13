@@ -19,9 +19,9 @@ for key, val in default_values.items():
     if key not in st.session_state:
         st.session_state[key] = val
 
-# Inputs vinculados ao session_state (SEM passar value)
+# Inputs vinculados ao session_state e atualizando o session_state automaticamente
 for key in default_values.keys():
-    st.number_input(key, key=key)
+    st.session_state[key] = st.number_input(key, value=st.session_state[key], key=key+"_input")
 
 # Criar DataFrame a partir dos valores atuais do session_state
 df = pd.DataFrame({
