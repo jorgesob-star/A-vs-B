@@ -4,7 +4,7 @@ from datetime import datetime
 
 st.title("Gestor de Valores")
 
-# Inicializar session_state com valores padrão
+# Valores padrão
 default_values = {
     "kraken": 678,
     "gate": 1956,
@@ -14,21 +14,22 @@ default_values = {
     "caixa": 927
 }
 
+# Inicializar session_state apenas uma vez
 for key, val in default_values.items():
     if key not in st.session_state:
         st.session_state[key] = val
 
-# Inputs vinculados ao session_state
-st.number_input("Kraken", value=st.session_state["kraken"], key="kraken")
-st.number_input("Gate", value=st.session_state["gate"], key="gate")
-st.number_input("Coinbase", value=st.session_state["coinbase"], key="coinbase")
-st.number_input("N26", value=st.session_state["n26"], key="n26")
-st.number_input("Revolut", value=st.session_state["revolut"], key="revolut")
-st.number_input("Caixa", value=st.session_state["caixa"], key="caixa")
+# Inputs vinculados ao session_state (NUNCA passar value após a inicialização)
+st.number_input("Kraken", key="kraken")
+st.number_input("Gate", key="gate")
+st.number_input("Coinbase", key="coinbase")
+st.number_input("N26", key="n26")
+st.number_input("Revolut", key="revolut")
+st.number_input("Caixa", key="caixa")
 
-# Criar DataFrame atualizado
+# Criar DataFrame a partir do session_state
 df = pd.DataFrame({
-    "Plataforma": ["Kraken", "Gate", "Coinbase", "N26", "Revolut", "Caixa"],
+    "Plataforma": list(default_values.keys()),
     "Valor": [
         st.session_state["kraken"],
         st.session_state["gate"],
@@ -42,14 +43,14 @@ df = pd.DataFrame({
 # Mostrar soma total
 st.success(f"💰 Total = {df['Valor'].sum()}")
 
-# Gerar CSV como string UTF-8
+# Gerar CSV a partir do session_state
 csv = df.to_csv(index=False, encoding="utf-8")
 
-# Gerar nome do arquivo com data e hora
+# Nome do arquivo com data/hora
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 file_name = f"valores_{timestamp}.csv"
 
-# Botão para salvar CSV
+# Botão de download manual
 st.download_button(
     label="💾 Salvar Valores",
     data=csv,
