@@ -15,14 +15,16 @@ default_values = {
 }
 
 # Inicializar session_state apenas uma vez
-for key, val in default_values.items():
-    st.session_state.setdefault(key, val)
+if "initialized" not in st.session_state:
+    for key, val in default_values.items():
+        st.session_state[key] = val
+    st.session_state["initialized"] = True
 
-# Criar inputs vinculados ao session_state (SEM passar value)
+# Inputs vinculados ao session_state
 for key in default_values.keys():
-    st.number_input(label=key, key=key)
+    st.session_state[key] = st.number_input(label=key, value=st.session_state[key], key=key+"_input")
 
-# Criar DataFrame a partir do session_state
+# Criar DataFrame atualizado
 df = pd.DataFrame({
     "Plataforma": list(default_values.keys()),
     "Valor": [st.session_state[key] for key in default_values.keys()]
@@ -31,14 +33,14 @@ df = pd.DataFrame({
 # Mostrar soma total
 st.success(f"💰 Total = {df['Valor'].sum()}")
 
-# Gerar CSV UTF-8
+# Gerar CSV
 csv = df.to_csv(index=False, encoding="utf-8")
 
 # Nome do arquivo com timestamp
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 file_name = f"valores_{timestamp}.csv"
 
-# Botão de download manual
+# Botão de download
 st.download_button(
     label="💾 Salvar Valores",
     data=csv,
