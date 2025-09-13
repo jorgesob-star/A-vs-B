@@ -3,13 +3,25 @@ import pandas as pd
 
 st.title("Gestor de Valores")
 
-# Entradas de valores
-kraken = st.number_input("Kraken", value=678)
-gate = st.number_input("Gate", value=1956)
-coinbase = st.number_input("Coinbase", value=2463)
-n26 = st.number_input("N26", value=195)
-revolut = st.number_input("Revolut", value=2180)
-caixa = st.number_input("Caixa", value=927)
+# Inicializar session_state apenas uma vez
+for key, default in {
+    "kraken": 678,
+    "gate": 1956,
+    "coinbase": 2463,
+    "n26": 195,
+    "revolut": 2180,
+    "caixa": 927
+}.items():
+    if key not in st.session_state:
+        st.session_state[key] = default
+
+# Entradas de valores vinculadas ao session_state
+kraken = st.number_input("Kraken", value=st.session_state["kraken"], key="kraken")
+gate = st.number_input("Gate", value=st.session_state["gate"], key="gate")
+coinbase = st.number_input("Coinbase", value=st.session_state["coinbase"], key="coinbase")
+n26 = st.number_input("N26", value=st.session_state["n26"], key="n26")
+revolut = st.number_input("Revolut", value=st.session_state["revolut"], key="revolut")
+caixa = st.number_input("Caixa", value=st.session_state["caixa"], key="caixa")
 
 # Criar DataFrame atualizado
 valores = {
